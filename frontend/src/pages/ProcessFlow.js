@@ -9,7 +9,8 @@ function ProcessFlow() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedEdge, setSelectedEdge] = useState(null);
-  const [viewMode, setViewMode] = useState('structured'); // Default to structured
+  const [transitionDetails, setTransitionDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -26,6 +27,22 @@ function ProcessFlow() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch detailed transition data when clicking on average time
+  const fetchTransitionDetails = async (edge) => {
+    setSelectedEdge(edge);
+    setLoadingDetails(true);
+    setTransitionDetails(null);
+    try {
+      const response = await processAPI.getTransitionDetails(edge.source, edge.target);
+      setTransitionDetails(response.data.cases || []);
+    } catch (err) {
+      console.error('Failed to fetch transition details:', err);
+      setTransitionDetails([]);
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -176,7 +193,7 @@ function ProcessFlow() {
         .attr('fill', 'none')
         .attr('marker-end', 'url(#arrowhead-structured)')
         .style('cursor', 'pointer')
-        .on('click', () => setSelectedEdge(edge))
+        .on('click', () => fetchTransitionDetails(edge))
         .on('mouseover', function() {
           d3.select(this).attr('stroke-width', 5);
         })
@@ -184,7 +201,7 @@ function ProcessFlow() {
           d3.select(this).attr('stroke-width', 3);
         });
 
-      // Add duration label on the edge
+      // Add duration label on the edge - clickable for details
       const labelX = (source.x + target.x) / 2;
       const labelY = sourceRow === targetRow 
         ? source.y - 15 
@@ -197,7 +214,15 @@ function ProcessFlow() {
         .attr('height', 20)
         .attr('rx', 4)
         .attr('fill', edgeColor)
-        .attr('opacity', 0.9);
+        .attr('opacity', 0.9)
+        .style('cursor', 'pointer')
+        .on('click', () => fetchTransitionDetails(edge))
+        .on('mouseover', function() {
+          d3.select(this).attr('opacity', 1).attr('stroke', '#fff').attr('stroke-width', 2);
+        })
+        .on('mouseout', function() {
+          d3.select(this).attr('opacity', 0.9).attr('stroke', 'none');
+        });
 
       edgeGroup.append('text')
         .attr('x', labelX)
@@ -206,7 +231,10 @@ function ProcessFlow() {
         .attr('fill', '#fff')
         .attr('font-size', '11px')
         .attr('font-weight', '500')
-        .text(formatDuration(edge.avgDuration));
+        .style('cursor', 'pointer')
+        .style('pointer-events', 'all')
+        .text(formatDuration(edge.avgDuration))
+        .on('click', () => fetchTransitionDetails(edge));
     });
 
     // Draw nodes
@@ -289,160 +317,23 @@ function ProcessFlow() {
 
   }, [flowData]);
 
-  const drawSpaghettiChart = useCallback(() => {
-    if (!flowData || !svgRef.current || !containerRef.current) return;
-
-    const container = containerRef.current;
-    const width = container.clientWidth;
-    const height = container.clientHeight - 60;
-
-    d3.select(svgRef.current).selectAll('*').remove();
-
-    const svg = d3.select(svgRef.current)
-      .attr('width', width)
-      .attr('height', height);
-
-    const g = svg.append('g');
-
-    const zoom = d3.zoom()
-      .scaleExtent([0.3, 3])
-      .on('zoom', (event) => {
-        g.attr('transform', event.transform);
-      });
-    svg.call(zoom);
-
-    const activityOrder = [
-      'Order Received', 'Order Validation', 'Credit Check', 'License Verification',
-      'Inventory Check', 'Quote Generation', 'Customer Approval', 'Payment Processing',
-      'License Provisioning', 'Software Deployment', 'Configuration Setup',
-      'Quality Assurance', 'Customer Notification', 'Order Completed'
-    ];
-
-    const padding = 100;
-    const cols = 4;
-    const cellWidth = (width - padding * 2) / cols;
-    const cellHeight = (height - padding * 2) / 4;
-
-    const nodes = flowData.nodes.map((node) => {
-      let orderIndex = activityOrder.indexOf(node.id);
-      if (orderIndex === -1) orderIndex = activityOrder.length;
-      const col = orderIndex % cols;
-      const row = Math.floor(orderIndex / cols);
-      return {
-        ...node,
-        x: padding + col * cellWidth + cellWidth / 2,
-        y: padding + row * cellHeight + cellHeight / 2,
-        orderIndex
-      };
-    });
-
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
-    const maxFrequency = d3.max(nodes, d => d.frequency) || 1;
-    const maxEdgeWeight = d3.max(flowData.edges, d => d.weight) || 1;
-    const maxDuration = d3.max(flowData.edges, d => d.avgDuration) || 1;
-    
-    const edgeColorScale = d3.scaleSequential(d3.interpolateRgb('#10b981', '#ef4444'))
-      .domain([0, maxDuration]);
-
-    svg.append('defs').append('marker')
-      .attr('id', 'arrowhead')
-      .attr('viewBox', '-0 -5 10 10')
-      .attr('refX', 25)
-      .attr('refY', 0)
-      .attr('orient', 'auto')
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
-      .append('path')
-      .attr('d', 'M 0,-5 L 10,0 L 0,5')
-      .attr('fill', '#6366f1');
-
-    // Draw edges
-    flowData.edges.forEach(d => {
-      const source = nodeMap.get(d.source);
-      const target = nodeMap.get(d.target);
-      if (!source || !target) return;
-
-      const midX = (source.x + target.x) / 2;
-      const midY = (source.y + target.y) / 2;
-      const dx = target.x - source.x;
-      const dy = target.y - source.y;
-      const curvature = 0.3;
-      const controlX = midX + (-dy * curvature);
-      const controlY = midY + (dx * curvature);
-      const strokeWidth = Math.max(1, Math.min(8, (d.weight / maxEdgeWeight) * 8));
-      const edgeColor = edgeColorScale(d.avgDuration);
-
-      g.append('path')
-        .attr('d', `M ${source.x} ${source.y} Q ${controlX} ${controlY} ${target.x} ${target.y}`)
-        .attr('stroke', edgeColor)
-        .attr('stroke-width', strokeWidth)
-        .attr('stroke-opacity', 0.6)
-        .attr('fill', 'none')
-        .attr('marker-end', 'url(#arrowhead)')
-        .style('cursor', 'pointer')
-        .on('click', () => setSelectedEdge(d))
-        .on('mouseover', function() {
-          d3.select(this).attr('stroke-opacity', 1).attr('stroke-width', strokeWidth + 2);
-        })
-        .on('mouseout', function() {
-          d3.select(this).attr('stroke-opacity', 0.6).attr('stroke-width', strokeWidth);
-        });
-    });
-
-    // Draw nodes
-    const nodeGroups = g.selectAll('.node')
-      .data(nodes)
-      .enter()
-      .append('g')
-      .attr('transform', d => `translate(${d.x}, ${d.y})`);
-
-    nodeGroups.append('circle')
-      .attr('r', d => Math.max(25, Math.min(45, 25 + (d.frequency / maxFrequency) * 20)))
-      .attr('fill', (d, i) => `hsl(${(i * 360 / nodes.length)}, 70%, 50%)`)
-      .attr('stroke', '#fff')
-      .attr('stroke-width', 2);
-
-    nodeGroups.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dy', '0.35em')
-      .text(d => d.id.length > 15 ? d.id.slice(0, 12) + '...' : d.id)
-      .style('font-size', '10px')
-      .style('fill', '#fff');
-
-    // Fit to view
-    const bounds = g.node().getBBox();
-    const scale = 0.85 / Math.max(bounds.width / width, bounds.height / height);
-    const translateX = width / 2 - scale * (bounds.x + bounds.width / 2);
-    const translateY = height / 2 - scale * (bounds.y + bounds.height / 2);
-    svg.call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(scale));
-
-  }, [flowData]);
-
-  // Draw chart based on view mode
+  // Draw chart when data loads
   useEffect(() => {
     if (flowData) {
-      if (viewMode === 'structured') {
-        drawStructuredChart();
-      } else {
-        drawSpaghettiChart();
-      }
+      drawStructuredChart();
     }
-  }, [flowData, viewMode, drawStructuredChart, drawSpaghettiChart]);
+  }, [flowData, drawStructuredChart]);
 
   // Handle resize
   useEffect(() => {
     const handleResize = () => {
       if (flowData) {
-        if (viewMode === 'structured') {
-          drawStructuredChart();
-        } else {
-          drawSpaghettiChart();
-        }
+        drawStructuredChart();
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [flowData, viewMode, drawStructuredChart, drawSpaghettiChart]);
+  }, [flowData, drawStructuredChart]);
 
   if (loading) {
     return (
@@ -471,26 +362,8 @@ function ProcessFlow() {
         <div>
           <h1 className="page-title">Process Flow Visualization</h1>
           <p className="page-subtitle">
-            {viewMode === 'structured' 
-              ? 'Directional process flow with step-by-step transitions and processing times'
-              : 'Spaghetti diagram showing all process paths and transitions'}
+            Directional process flow with step-by-step transitions and processing times. Click on duration labels to see case details.
           </p>
-        </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div className="tab-nav" style={{ marginBottom: 0 }}>
-            <button 
-              className={`tab-btn ${viewMode === 'structured' ? 'active' : ''}`}
-              onClick={() => setViewMode('structured')}
-            >
-              Structured
-            </button>
-            <button 
-              className={`tab-btn ${viewMode === 'spaghetti' ? 'active' : ''}`}
-              onClick={() => setViewMode('spaghetti')}
-            >
-              Spaghetti
-            </button>
-          </div>
         </div>
       </div>
 
@@ -510,7 +383,7 @@ function ProcessFlow() {
         </div>
         <div className="legend-item">
           <Info size={16} style={{ marginRight: '4px' }} />
-          <span>Line thickness = transition frequency</span>
+          <span>Click duration labels to see details</span>
         </div>
       </div>
 
@@ -530,7 +403,7 @@ function ProcessFlow() {
             <h3 className="card-title">Transition Details: {selectedEdge.source} → {selectedEdge.target}</h3>
             <button 
               className="btn btn-secondary"
-              onClick={() => setSelectedEdge(null)}
+              onClick={() => { setSelectedEdge(null); setTransitionDetails(null); }}
             >
               Close
             </button>
@@ -552,6 +425,59 @@ function ProcessFlow() {
               <div className="metric-value">{formatDuration(selectedEdge.maxDuration)}</div>
               <div className="metric-label">Max Duration</div>
             </div>
+          </div>
+          
+          {/* Case Details Table */}
+          <div style={{ marginTop: '20px' }}>
+            <h4 style={{ marginBottom: '12px', color: 'var(--text-primary)' }}>
+              Cases with this transition ({transitionDetails?.length || 0} found)
+            </h4>
+            {loadingDetails ? (
+              <div style={{ padding: '20px', textAlign: 'center' }}>
+                <div className="loading-spinner" style={{ margin: '0 auto' }}></div>
+                <p style={{ marginTop: '8px', color: 'var(--text-muted)' }}>Loading case details...</p>
+              </div>
+            ) : transitionDetails && transitionDetails.length > 0 ? (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="data-table" style={{ minWidth: '800px' }}>
+                  <thead>
+                    <tr>
+                      <th>Case ID</th>
+                      <th>Customer</th>
+                      <th>Status</th>
+                      <th>Source Time</th>
+                      <th>Target Time</th>
+                      <th>Duration</th>
+                      <th>Resource</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transitionDetails.slice(0, 20).map((item, index) => (
+                      <tr key={index}>
+                        <td style={{ fontWeight: 500, color: 'var(--accent-primary)' }}>{item.caseId}</td>
+                        <td>{item.customer}</td>
+                        <td>
+                          <span className={`badge ${item.status === 'Completed' ? 'green' : item.status === 'Cancelled' ? 'red' : 'yellow'}`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: '13px' }}>{new Date(item.sourceTime).toLocaleString()}</td>
+                        <td style={{ fontSize: '13px' }}>{new Date(item.targetTime).toLocaleString()}</td>
+                        <td style={{ fontWeight: 500 }}>{formatDuration(item.duration)}</td>
+                        <td>{item.resource}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {transitionDetails.length > 20 && (
+                  <p style={{ marginTop: '12px', color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center' }}>
+                    Showing first 20 of {transitionDetails.length} cases (sorted by duration, longest first)
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-muted)', padding: '12px' }}>No detailed case data available for this transition.</p>
+            )}
           </div>
         </div>
       )}

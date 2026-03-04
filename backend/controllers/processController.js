@@ -394,3 +394,66 @@ exports.getFilterOptions = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Get transition details - cases with specific source->target transition
+exports.getTransitionDetails = async (req, res) => {
+  try {
+    const { source, target } = req.query;
+    
+    if (!source || !target) {
+      return res.status(400).json({ error: 'Source and target activities are required' });
+    }
+
+    // Get all events grouped by case
+    const events = await ProcessEvent.find().sort({ caseId: 1, timestamp: 1 });
+    
+    // Group events by caseId
+    const eventsByCase = {};
+    events.forEach(event => {
+      if (!eventsByCase[event.caseId]) {
+        eventsByCase[event.caseId] = [];
+      }
+      eventsByCase[event.caseId].push(event);
+    });
+    
+    // Find cases with this specific transition
+    const transitionCases = [];
+    
+    for (const [caseId, caseEvents] of Object.entries(eventsByCase)) {
+      for (let i = 0; i < caseEvents.length - 1; i++) {
+        if (caseEvents[i].activity === source && caseEvents[i + 1].activity === target) {
+          const sourceEvent = caseEvents[i];
+          const targetEvent = caseEvents[i + 1];
+          const duration = new Date(targetEvent.timestamp) - new Date(sourceEvent.timestamp);
+          
+          // Get case info
+          const caseInfo = await Case.findOne({ caseId });
+          
+          transitionCases.push({
+            caseId,
+            sourceTime: sourceEvent.timestamp,
+            targetTime: targetEvent.timestamp,
+            duration,
+            resource: targetEvent.resource || 'System',
+            customer: caseInfo?.customer || '-',
+            status: caseInfo?.status || '-',
+            region: caseInfo?.region || '-',
+            priority: caseInfo?.priority || '-'
+          });
+          break; // Only count first occurrence per case
+        }
+      }
+    }
+    
+    // Sort by duration descending
+    transitionCases.sort((a, b) => b.duration - a.duration);
+    
+    res.json({
+      transition: { source, target },
+      count: transitionCases.length,
+      cases: transitionCases.slice(0, 50) // Limit to 50 cases
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

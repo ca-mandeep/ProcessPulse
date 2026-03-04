@@ -24,6 +24,9 @@ router.get('/analytics/time', processController.getTimeAnalytics);
 // Bottleneck Analysis
 router.get('/analytics/bottlenecks', processController.getBottlenecks);
 
+// Transition Details (for viewing cases with specific transition)
+router.get('/transition-details', processController.getTransitionDetails);
+
 // Filter Options
 router.get('/filters', processController.getFilterOptions);
 

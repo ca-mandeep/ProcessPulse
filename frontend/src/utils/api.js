@@ -119,6 +119,9 @@ export const processAPI = {
   
   // Get filter options
   getFilterOptions: () => api.get('/process/filters'),
+  
+  // Get transition details (cases with specific source->target transition)
+  getTransitionDetails: (source, target) => api.get('/process/transition-details', { params: { source, target } }),
 };
 
 export default api;
