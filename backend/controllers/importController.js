@@ -11,7 +11,10 @@ const ProcessTransition = require('../models/ProcessTransition');
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads');
+    // Use /tmp for cloud deployments (Render, Heroku) or local uploads folder
+    const uploadDir = process.env.NODE_ENV === 'production' 
+      ? '/tmp/uploads' 
+      : path.join(__dirname, '../uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -125,9 +128,16 @@ exports.processImport = async (req, res) => {
     dataImport.columnMapping = columnMapping;
     await dataImport.save();
 
-    // Parse full file
-    const filePath = path.join(__dirname, '../uploads', dataImport.fileName);
+    // Parse full file - use same directory logic as upload
+    const uploadDir = process.env.NODE_ENV === 'production' 
+      ? '/tmp/uploads' 
+      : path.join(__dirname, '../uploads');
+    const filePath = path.join(uploadDir, dataImport.fileName);
     let data = [];
+
+    if (!fs.existsSync(filePath)) {
+      throw new Error('Upload file not found. Please re-upload the file.');
+    }
 
     if (dataImport.fileType === 'csv') {
       data = await parseCSV(filePath);
