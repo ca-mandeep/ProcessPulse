@@ -21,7 +21,8 @@ import {
   Layers,
   Zap,
   History,
-  Sparkles
+  Sparkles,
+  Download
 } from 'lucide-react';
 
 const Import = () => {
@@ -203,6 +204,37 @@ const Import = () => {
     if (ext === 'xlsx' || ext === 'xls') return '📊';
     if (ext === 'json') return '📋';
     return '📁';
+  };
+
+  const downloadTemplate = () => {
+    // Sample process mining data template
+    const templateData = `CaseID,Activity,Timestamp,Resource
+ORD-001,Order Received,2024-01-15 09:00:00,John Smith
+ORD-001,Validation,2024-01-15 09:15:00,Jane Doe
+ORD-001,Credit Check,2024-01-15 09:30:00,System
+ORD-001,Approved,2024-01-15 10:00:00,Manager
+ORD-001,Shipped,2024-01-15 14:00:00,Warehouse
+ORD-002,Order Received,2024-01-15 10:00:00,John Smith
+ORD-002,Validation,2024-01-15 10:20:00,Jane Doe
+ORD-002,Credit Check,2024-01-15 10:35:00,System
+ORD-002,Rejected,2024-01-15 11:00:00,Manager
+ORD-003,Order Received,2024-01-15 11:00:00,Mike Wilson
+ORD-003,Validation,2024-01-15 11:10:00,Jane Doe
+ORD-003,Credit Check,2024-01-15 11:25:00,System
+ORD-003,Approved,2024-01-15 11:45:00,Manager
+ORD-003,Payment,2024-01-15 12:00:00,Finance
+ORD-003,Shipped,2024-01-15 16:00:00,Warehouse
+ORD-003,Delivered,2024-01-16 10:00:00,Courier`;
+    
+    const blob = new Blob([templateData], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'process_mining_template.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const styles = {
@@ -677,11 +709,40 @@ const Import = () => {
                         <FileSpreadsheet size={64} color="#4a4a6a" style={{ marginBottom: '16px' }} />
                         <p style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '4px' }}>Drop your file here</p>
                         <p style={{ color: '#6b6b82', fontSize: '14px', marginBottom: '20px' }}>or click to browse</p>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}>
                           <span style={styles.fileTypeBadge}>CSV</span>
                           <span style={styles.fileTypeBadge}>Excel</span>
                           <span style={styles.fileTypeBadge}>JSON</span>
                         </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); downloadTemplate(); }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '10px 20px',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                            border: 'none',
+                            borderRadius: '10px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.transform = 'none';
+                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
+                          }}
+                        >
+                          <Download size={16} />
+                          Download Template
+                        </button>
                       </>
                     )}
                   </div>
