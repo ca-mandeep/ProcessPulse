@@ -16,11 +16,12 @@ import {
   Database,
   FileUp,
   Table,
-  CheckCircle2,
+  CheckCircle,
   XCircle,
-  HelpCircle,
   Layers,
-  Zap
+  Zap,
+  History,
+  Sparkles
 } from 'lucide-react';
 
 const Import = () => {
@@ -204,170 +205,540 @@ const Import = () => {
     return '📁';
   };
 
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)',
+      padding: '32px',
+      position: 'relative'
+    },
+    maxWidth: {
+      maxWidth: '1400px',
+      margin: '0 auto'
+    },
+    header: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: '32px'
+    },
+    headerLeft: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '16px'
+    },
+    headerIcon: {
+      width: '56px',
+      height: '56px',
+      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+      borderRadius: '16px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 10px 40px rgba(99, 102, 241, 0.3)'
+    },
+    headerTitle: {
+      fontSize: '28px',
+      fontWeight: '700',
+      color: '#ffffff',
+      marginBottom: '4px'
+    },
+    headerSubtitle: {
+      fontSize: '14px',
+      color: '#a0a0b8'
+    },
+    clearButton: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '12px 20px',
+      background: 'rgba(239, 68, 68, 0.1)',
+      border: '1px solid rgba(239, 68, 68, 0.3)',
+      borderRadius: '12px',
+      color: '#f87171',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease'
+    },
+    alertBox: {
+      padding: '16px 20px',
+      borderRadius: '12px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      marginBottom: '24px'
+    },
+    alertError: {
+      background: 'rgba(239, 68, 68, 0.1)',
+      border: '1px solid rgba(239, 68, 68, 0.3)'
+    },
+    alertSuccess: {
+      background: 'rgba(16, 185, 129, 0.1)',
+      border: '1px solid rgba(16, 185, 129, 0.3)'
+    },
+    stepBar: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '24px',
+      padding: '24px',
+      background: 'rgba(30, 30, 53, 0.6)',
+      backdropFilter: 'blur(10px)',
+      borderRadius: '16px',
+      border: '1px solid rgba(99, 102, 241, 0.2)',
+      marginBottom: '32px'
+    },
+    stepItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    },
+    stepCircle: {
+      width: '44px',
+      height: '44px',
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: '600',
+      fontSize: '16px',
+      transition: 'all 0.3s ease'
+    },
+    stepLine: {
+      width: '80px',
+      height: '3px',
+      borderRadius: '2px',
+      transition: 'background 0.3s ease'
+    },
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: '2fr 1fr',
+      gap: '24px'
+    },
+    card: {
+      background: 'rgba(30, 30, 53, 0.8)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: '20px',
+      padding: '28px',
+      border: '1px solid rgba(99, 102, 241, 0.15)',
+      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
+    },
+    cardTitle: {
+      fontSize: '18px',
+      fontWeight: '600',
+      color: '#ffffff',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      marginBottom: '20px'
+    },
+    dropzone: {
+      border: '2px dashed',
+      borderRadius: '16px',
+      padding: '48px 24px',
+      textAlign: 'center',
+      cursor: 'pointer',
+      transition: 'all 0.3s ease'
+    },
+    dropzoneDefault: {
+      borderColor: '#3d3d5c',
+      background: 'rgba(37, 37, 66, 0.3)'
+    },
+    dropzoneActive: {
+      borderColor: '#6366f1',
+      background: 'rgba(99, 102, 241, 0.1)'
+    },
+    dropzoneWithFile: {
+      borderColor: 'rgba(16, 185, 129, 0.5)',
+      background: 'rgba(16, 185, 129, 0.05)'
+    },
+    fileTypeBadge: {
+      padding: '6px 14px',
+      background: 'rgba(99, 102, 241, 0.15)',
+      borderRadius: '20px',
+      fontSize: '12px',
+      color: '#a0a0b8',
+      fontWeight: '500'
+    },
+    uploadButton: {
+      width: '100%',
+      padding: '16px',
+      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+      border: 'none',
+      borderRadius: '12px',
+      color: '#ffffff',
+      fontSize: '15px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+      marginTop: '20px',
+      boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)',
+      transition: 'all 0.2s ease'
+    },
+    columnMapCard: {
+      background: 'rgba(37, 37, 66, 0.5)',
+      borderRadius: '14px',
+      padding: '18px',
+      border: '1px solid rgba(99, 102, 241, 0.1)',
+      transition: 'all 0.2s ease'
+    },
+    columnLabel: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      marginBottom: '8px',
+      fontSize: '14px',
+      fontWeight: '500',
+      color: '#ffffff'
+    },
+    columnDesc: {
+      fontSize: '12px',
+      color: '#6b6b82',
+      marginBottom: '12px'
+    },
+    selectWrapper: {
+      position: 'relative'
+    },
+    select: {
+      width: '100%',
+      padding: '12px 40px 12px 14px',
+      background: 'rgba(15, 15, 26, 0.6)',
+      border: '2px solid rgba(45, 45, 74, 0.8)',
+      borderRadius: '10px',
+      color: '#ffffff',
+      fontSize: '14px',
+      appearance: 'none',
+      cursor: 'pointer',
+      outline: 'none',
+      transition: 'all 0.2s ease'
+    },
+    selectFilled: {
+      borderColor: 'rgba(16, 185, 129, 0.5)'
+    },
+    processButton: {
+      width: '100%',
+      padding: '18px',
+      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+      border: 'none',
+      borderRadius: '12px',
+      color: '#ffffff',
+      fontSize: '16px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+      marginTop: '24px',
+      boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+      transition: 'all 0.2s ease'
+    },
+    disabledButton: {
+      background: '#2d2d4a',
+      boxShadow: 'none',
+      cursor: 'not-allowed',
+      opacity: 0.6
+    },
+    historyCard: {
+      background: 'rgba(30, 30, 53, 0.8)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: '20px',
+      padding: '24px',
+      border: '1px solid rgba(139, 92, 246, 0.15)',
+      height: 'fit-content'
+    },
+    historyItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      padding: '14px',
+      background: 'rgba(37, 37, 66, 0.5)',
+      borderRadius: '12px',
+      marginBottom: '10px',
+      border: '1px solid rgba(99, 102, 241, 0.1)'
+    },
+    historyIcon: {
+      fontSize: '28px'
+    },
+    historyInfo: {
+      flex: 1
+    },
+    historyFileName: {
+      fontSize: '14px',
+      color: '#ffffff',
+      fontWeight: '500',
+      marginBottom: '2px'
+    },
+    historyMeta: {
+      fontSize: '12px',
+      color: '#6b6b82'
+    },
+    historyBadge: {
+      padding: '4px 10px',
+      borderRadius: '6px',
+      fontSize: '11px',
+      fontWeight: '600'
+    },
+    spinner: {
+      width: '20px',
+      height: '20px',
+      border: '2px solid rgba(255, 255, 255, 0.3)',
+      borderTopColor: '#ffffff',
+      borderRadius: '50%',
+      animation: 'spin 0.8s linear infinite'
+    },
+    previewTable: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      marginTop: '20px',
+      borderRadius: '12px',
+      overflow: 'hidden'
+    },
+    previewTh: {
+      padding: '12px 16px',
+      background: 'rgba(99, 102, 241, 0.15)',
+      color: '#a0a0b8',
+      fontSize: '13px',
+      fontWeight: '600',
+      textAlign: 'left',
+      borderBottom: '1px solid rgba(99, 102, 241, 0.2)'
+    },
+    previewTd: {
+      padding: '10px 16px',
+      color: '#d1d1e0',
+      fontSize: '13px',
+      borderBottom: '1px solid rgba(45, 45, 74, 0.5)'
+    }
+  };
+
   const StepIndicator = ({ number, title, active, completed }) => (
-    <div className={`flex items-center gap-3 ${active ? 'text-blue-400' : completed ? 'text-green-400' : 'text-slate-500'}`}>
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm border-2 transition-all ${
-        active ? 'bg-blue-600 border-blue-400 text-white' : 
-        completed ? 'bg-green-600 border-green-400 text-white' : 
-        'bg-slate-800 border-slate-600 text-slate-400'
-      }`}>
-        {completed ? <Check className="w-5 h-5" /> : number}
+    <div style={styles.stepItem}>
+      <div style={{
+        ...styles.stepCircle,
+        background: completed ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 
+                   active ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : 
+                   'rgba(45, 45, 74, 0.8)',
+        border: completed ? 'none' : active ? 'none' : '2px solid #3d3d5c',
+        color: completed || active ? '#ffffff' : '#6b6b82',
+        boxShadow: active ? '0 4px 20px rgba(99, 102, 241, 0.4)' : 
+                   completed ? '0 4px 20px rgba(16, 185, 129, 0.4)' : 'none'
+      }}>
+        {completed ? <Check size={20} /> : number}
       </div>
-      <span className={`font-medium ${active ? 'text-white' : ''}`}>{title}</span>
+      <span style={{
+        fontSize: '14px',
+        fontWeight: '500',
+        color: active || completed ? '#ffffff' : '#6b6b82'
+      }}>{title}</span>
     </div>
   );
 
   const ColumnSelect = ({ label, required, value, onChange, columns, icon: Icon, description }) => (
-    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 hover:border-slate-600 transition-colors">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-4 h-4 text-blue-400" />
-        <label className="text-sm font-medium text-white">
-          {label} {required && <span className="text-red-400">*</span>}
-        </label>
+    <div style={styles.columnMapCard}>
+      <div style={styles.columnLabel}>
+        <Icon size={16} color="#6366f1" />
+        {label} {required && <span style={{ color: '#f87171' }}>*</span>}
       </div>
-      <p className="text-xs text-slate-500 mb-3">{description}</p>
-      <div className="relative">
+      <div style={styles.columnDesc}>{description}</div>
+      <div style={styles.selectWrapper}>
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full py-2.5 px-4 bg-slate-900/50 border rounded-lg appearance-none cursor-pointer text-sm transition-all ${
-            value ? 'border-green-500/50 text-white' : 'border-slate-600 text-slate-400'
-          } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          style={{
+            ...styles.select,
+            ...(value ? styles.selectFilled : {})
+          }}
         >
           <option value="">Select column...</option>
           {columns?.map(col => (
             <option key={col} value={col}>{col}</option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-        {value && <CheckCircle2 className="absolute right-8 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400" />}
+        <ChevronDown size={18} color="#6b6b82" style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+        {value && <CheckCircle size={16} color="#10b981" style={{ position: 'absolute', right: '38px', top: '50%', transform: 'translateY(-50%)' }} />}
       </div>
     </div>
   );
 
   return (
-    <div className="fade-in p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Database className="w-5 h-5 text-white" />
-              </div>
-              Data Import
-            </h1>
-            <p className="text-slate-400 mt-2">Import your process event data for analysis</p>
+    <div style={styles.container}>
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        select option {
+          background: #1e1e35;
+          color: #ffffff;
+        }
+        @media (max-width: 1024px) {
+          .import-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+
+      <div style={styles.maxWidth}>
+        {/* Header */}
+        <div style={styles.header}>
+          <div style={styles.headerLeft}>
+            <div style={styles.headerIcon}>
+              <Database size={28} color="#ffffff" />
+            </div>
+            <div>
+              <h1 style={styles.headerTitle}>Data Import</h1>
+              <p style={styles.headerSubtitle}>Import your process event data for analysis</p>
+            </div>
           </div>
           <button
             onClick={handleClearData}
-            className="flex items-center gap-2 px-4 py-2.5 bg-red-600/10 border border-red-500/30 text-red-400 rounded-xl hover:bg-red-600/20 transition-all hover:border-red-500/50"
+            style={styles.clearButton}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            }}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 size={18} />
             Clear All Data
           </button>
         </div>
 
+        {/* Alerts */}
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-            <span className="text-red-300">{error}</span>
-            <button onClick={() => setError('')} className="ml-auto text-red-400 hover:text-red-300">
-              <XCircle className="w-5 h-5" />
+          <div style={{ ...styles.alertBox, ...styles.alertError }}>
+            <AlertCircle size={20} color="#f87171" />
+            <span style={{ color: '#fca5a5', flex: 1 }}>{error}</span>
+            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+              <XCircle size={20} color="#f87171" />
             </button>
           </div>
         )}
         {success && (
-          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-            <span className="text-green-300">{success}</span>
-            <button onClick={() => setSuccess('')} className="ml-auto text-green-400 hover:text-green-300">
-              <XCircle className="w-5 h-5" />
+          <div style={{ ...styles.alertBox, ...styles.alertSuccess }}>
+            <CheckCircle size={20} color="#34d399" />
+            <span style={{ color: '#6ee7b7', flex: 1 }}>{success}</span>
+            <button onClick={() => setSuccess('')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+              <XCircle size={20} color="#34d399" />
             </button>
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-8 mb-8 p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
+        {/* Step Indicator */}
+        <div style={styles.stepBar}>
           <StepIndicator number={1} title="Upload File" active={step === 1 && !uploadResult} completed={!!uploadResult} />
-          <div className={`w-16 h-0.5 ${uploadResult ? 'bg-green-500' : 'bg-slate-700'}`} />
+          <div style={{ ...styles.stepLine, background: uploadResult ? 'linear-gradient(90deg, #10b981, #6366f1)' : '#2d2d4a' }} />
           <StepIndicator number={2} title="Map Columns" active={step === 2} completed={step === 3} />
-          <div className={`w-16 h-0.5 ${step === 3 ? 'bg-green-500' : 'bg-slate-700'}`} />
-          <StepIndicator number={3} title="Import" active={step === 3} completed={false} />
+          <div style={{ ...styles.stepLine, background: step === 3 ? 'linear-gradient(90deg, #10b981, #6366f1)' : '#2d2d4a' }} />
+          <StepIndicator number={3} title="Import Data" active={step === 3} completed={false} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="card p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <FileUp className="w-5 h-5 text-blue-400" />
+        {/* Main Grid */}
+        <div className="import-grid" style={styles.grid}>
+          {/* Left Column - Upload & Mapping */}
+          <div>
+            {/* Upload Card */}
+            <div style={styles.card}>
+              <h2 style={styles.cardTitle}>
+                <FileUp size={22} color="#6366f1" />
                 {uploadResult ? 'File Uploaded' : 'Upload Data File'}
               </h2>
 
               {!uploadResult ? (
-                <div
-                  className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-                    dragActive ? 'border-blue-400 bg-blue-500/10' : file ? 'border-green-500/50 bg-green-500/5' : 'border-slate-600 hover:border-slate-500'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={() => document.getElementById('fileInput').click()}
-                >
-                  <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.json" onChange={handleFileChange} className="hidden" />
-                  
-                  {file ? (
-                    <div className="py-4">
-                      <div className="text-5xl mb-4">{getFileIcon(file.name)}</div>
-                      <p className="text-white font-medium text-lg">{file.name}</p>
-                      <p className="text-slate-400 text-sm mt-1">{formatFileSize(file.size)}</p>
-                      <p className="text-green-400 text-sm mt-2 flex items-center justify-center gap-1">
-                        <Check className="w-4 h-4" /> Ready to upload
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="py-4">
-                      <FileSpreadsheet className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-                      <p className="text-white font-medium text-lg">Drop your file here</p>
-                      <p className="text-slate-400 text-sm mt-1">or click to browse</p>
-                      <div className="flex items-center justify-center gap-4 mt-4">
-                        <span className="px-3 py-1 bg-slate-700/50 rounded-full text-xs text-slate-300">CSV</span>
-                        <span className="px-3 py-1 bg-slate-700/50 rounded-full text-xs text-slate-300">Excel</span>
-                        <span className="px-3 py-1 bg-slate-700/50 rounded-full text-xs text-slate-300">JSON</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-4 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-                  <div className="text-4xl">{getFileIcon(file?.name)}</div>
-                  <div className="flex-1">
-                    <p className="text-white font-medium">{uploadResult.fileName}</p>
-                    <p className="text-slate-400 text-sm">{uploadResult.rowCount} rows • {uploadResult.columns?.length} columns</p>
+                <>
+                  <div
+                    style={{
+                      ...styles.dropzone,
+                      ...(dragActive ? styles.dropzoneActive : file ? styles.dropzoneWithFile : styles.dropzoneDefault)
+                    }}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById('fileInput').click()}
+                  >
+                    <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.json" onChange={handleFileChange} style={{ display: 'none' }} />
+                    
+                    {file ? (
+                      <>
+                        <div style={{ fontSize: '56px', marginBottom: '16px' }}>{getFileIcon(file.name)}</div>
+                        <p style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '4px' }}>{file.name}</p>
+                        <p style={{ color: '#a0a0b8', fontSize: '14px', marginBottom: '12px' }}>{formatFileSize(file.size)}</p>
+                        <p style={{ color: '#10b981', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <Check size={18} /> Ready to upload
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <FileSpreadsheet size={64} color="#4a4a6a" style={{ marginBottom: '16px' }} />
+                        <p style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '4px' }}>Drop your file here</p>
+                        <p style={{ color: '#6b6b82', fontSize: '14px', marginBottom: '20px' }}>or click to browse</p>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                          <span style={styles.fileTypeBadge}>CSV</span>
+                          <span style={styles.fileTypeBadge}>Excel</span>
+                          <span style={styles.fileTypeBadge}>JSON</span>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <CheckCircle2 className="w-6 h-6 text-green-400" />
-                </div>
-              )}
 
-              {file && !uploadResult && (
-                <button
-                  onClick={handleUpload}
-                  disabled={uploading}
-                  className="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 text-white font-medium rounded-xl flex items-center justify-center gap-2 transition-all"
-                >
-                  {uploading ? <><RefreshCw className="w-5 h-5 animate-spin" /> Analyzing file...</> : <><Zap className="w-5 h-5" /> Upload & Analyze</>}
-                </button>
+                  {file && (
+                    <button
+                      onClick={handleUpload}
+                      disabled={uploading}
+                      style={{
+                        ...styles.uploadButton,
+                        ...(uploading ? styles.disabledButton : {})
+                      }}
+                    >
+                      {uploading ? (
+                        <>
+                          <div style={styles.spinner}></div>
+                          Analyzing file...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={20} />
+                          Upload & Analyze
+                        </>
+                      )}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: '20px',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  borderRadius: '14px'
+                }}>
+                  <div style={{ fontSize: '48px' }}>{getFileIcon(file?.name)}</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>{uploadResult.fileName}</p>
+                    <p style={{ color: '#a0a0b8', fontSize: '13px' }}>{uploadResult.rowCount} rows • {uploadResult.columns?.length} columns</p>
+                  </div>
+                  <CheckCircle size={28} color="#10b981" />
+                </div>
               )}
             </div>
 
+            {/* Column Mapping Card */}
             {uploadResult && (
-              <div className="card p-6">
-                <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-purple-400" />
+              <div style={{ ...styles.card, marginTop: '24px' }}>
+                <h2 style={styles.cardTitle}>
+                  <Layers size={22} color="#8b5cf6" />
                   Map Your Columns
                 </h2>
-                <p className="text-slate-400 text-sm mb-4">Match your file columns to the required data fields</p>
+                <p style={{ color: '#6b6b82', fontSize: '14px', marginBottom: '20px' }}>Match your file columns to the required data fields</p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                   <ColumnSelect label="Case ID" required value={columnMapping.caseIdColumn} onChange={(v) => setColumnMapping({...columnMapping, caseIdColumn: v})} columns={uploadResult.columns} icon={Database} description="Unique identifier for each process instance" />
                   <ColumnSelect label="Activity" required value={columnMapping.activityColumn} onChange={(v) => setColumnMapping({...columnMapping, activityColumn: v})} columns={uploadResult.columns} icon={Zap} description="Name of the process step or event" />
                   <ColumnSelect label="Timestamp" required value={columnMapping.timestampColumn} onChange={(v) => setColumnMapping({...columnMapping, timestampColumn: v})} columns={uploadResult.columns} icon={Clock} description="When the activity occurred" />
@@ -377,35 +748,49 @@ const Import = () => {
                 <button
                   onClick={handleProcess}
                   disabled={processing || !columnMapping.caseIdColumn || !columnMapping.activityColumn || !columnMapping.timestampColumn}
-                  className="w-full py-3.5 bg-green-600 hover:bg-green-500 disabled:bg-slate-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  style={{
+                    ...styles.processButton,
+                    ...((processing || !columnMapping.caseIdColumn || !columnMapping.activityColumn || !columnMapping.timestampColumn) ? styles.disabledButton : {})
+                  }}
                 >
-                  {processing ? <><RefreshCw className="w-5 h-5 animate-spin" /> Importing data...</> : <><ArrowRight className="w-5 h-5" /> Start Import</>}
+                  {processing ? (
+                    <>
+                      <div style={styles.spinner}></div>
+                      Importing data...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight size={20} />
+                      Start Import
+                    </>
+                  )}
                 </button>
 
+                {/* Data Preview */}
                 {uploadResult.preview?.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
-                      <Table className="w-4 h-4" /> Data Preview
+                  <div style={{ marginTop: '28px' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#a0a0b8', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <Table size={16} /> Data Preview
                     </h4>
-                    <div className="overflow-x-auto rounded-lg border border-slate-700">
-                      <table className="w-full text-sm">
+                    <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                      <table style={styles.previewTable}>
                         <thead>
-                          <tr className="bg-slate-700/50">
+                          <tr>
                             {uploadResult.columns?.slice(0, 5).map(col => (
-                              <th key={col} className="px-4 py-2.5 text-left text-slate-300 font-medium whitespace-nowrap">
+                              <th key={col} style={styles.previewTh}>
                                 {col}
-                                {col === columnMapping.caseIdColumn && <span className="ml-1 text-blue-400">●</span>}
-                                {col === columnMapping.activityColumn && <span className="ml-1 text-purple-400">●</span>}
-                                {col === columnMapping.timestampColumn && <span className="ml-1 text-green-400">●</span>}
+                                {col === columnMapping.caseIdColumn && <span style={{ marginLeft: '6px', color: '#6366f1' }}>●</span>}
+                                {col === columnMapping.activityColumn && <span style={{ marginLeft: '6px', color: '#8b5cf6' }}>●</span>}
+                                {col === columnMapping.timestampColumn && <span style={{ marginLeft: '6px', color: '#10b981' }}>●</span>}
                               </th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
-                          {uploadResult.preview.slice(0, 4).map((row, idx) => (
-                            <tr key={idx} className="border-t border-slate-700/50 hover:bg-slate-700/30">
+                          {uploadResult.preview.slice(0, 5).map((row, idx) => (
+                            <tr key={idx}>
                               {uploadResult.columns?.slice(0, 5).map(col => (
-                                <td key={col} className="px-4 py-2 text-slate-400 truncate max-w-40">{String(row[col] || '-')}</td>
+                                <td key={col} style={styles.previewTd}>{row[col]}</td>
                               ))}
                             </tr>
                           ))}
@@ -418,62 +803,69 @@ const Import = () => {
             )}
           </div>
 
-          <div className="space-y-6">
-            <div className="card p-5" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1))' }}>
-              <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <HelpCircle className="w-4 h-4" /> Quick Guide
-              </h3>
-              <ul className="space-y-2 text-sm text-slate-300">
-                <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">1.</span> Upload a CSV, Excel, or JSON file</li>
-                <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">2.</span> Map columns to required fields</li>
-                <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">3.</span> Click Import to start analysis</li>
-              </ul>
-            </div>
+          {/* Right Column - History */}
+          <div style={styles.historyCard}>
+            <h2 style={{ ...styles.cardTitle, marginBottom: '16px' }}>
+              <History size={22} color="#8b5cf6" />
+              Import History
+            </h2>
 
-            <div className="card p-5">
-              <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-400" /> Import History
-              </h3>
-
-              {loadingHistory ? (
-                <div className="flex items-center justify-center py-8">
-                  <RefreshCw className="w-6 h-6 text-blue-400 animate-spin" />
-                </div>
-              ) : importHistory.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No imports yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-80 overflow-y-auto">
-                  {importHistory.map((imp) => (
-                    <div key={imp._id} className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium truncate">{imp.originalFilename}</p>
-                          <p className="text-slate-500 text-xs mt-1">{formatDate(imp.createdAt)}</p>
-                        </div>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${imp.status === 'completed' ? 'bg-green-500/20 text-green-400' : imp.status === 'failed' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                          {imp.status}
-                        </span>
-                      </div>
-                      {imp.casesCreated && <p className="text-slate-400 text-xs mt-2">{imp.casesCreated} cases • {imp.eventsCreated} events</p>}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="card p-5">
-              <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4 text-slate-400" /> Expected Format
-              </h3>
-              <div className="text-sm text-slate-400 space-y-2">
-                <div className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full"></span><span><strong className="text-slate-300">Case ID</strong> - Unique per process</span></div>
-                <div className="flex items-center gap-2"><span className="w-2 h-2 bg-purple-500 rounded-full"></span><span><strong className="text-slate-300">Activity</strong> - Step/event name</span></div>
-                <div className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full"></span><span><strong className="text-slate-300">Timestamp</strong> - When it occurred</span></div>
-                <div className="flex items-center gap-2"><span className="w-2 h-2 bg-slate-500 rounded-full"></span><span><strong className="text-slate-300">Resource</strong> - Who did it (optional)</span></div>
+            {loadingHistory ? (
+              <div style={{ textAlign: 'center', padding: '32px' }}>
+                <div style={{ ...styles.spinner, margin: '0 auto' }}></div>
+                <p style={{ color: '#6b6b82', marginTop: '12px', fontSize: '14px' }}>Loading history...</p>
               </div>
+            ) : importHistory.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px' }}>
+                <Upload size={48} color="#3d3d5c" style={{ marginBottom: '16px' }} />
+                <p style={{ color: '#6b6b82', fontSize: '14px' }}>No imports yet</p>
+                <p style={{ color: '#4a4a6a', fontSize: '12px', marginTop: '4px' }}>Upload your first file to get started</p>
+              </div>
+            ) : (
+              <div>
+                {importHistory.slice(0, 5).map((item, idx) => (
+                  <div key={idx} style={styles.historyItem}>
+                    <div style={styles.historyIcon}>{getFileIcon(item.fileName)}</div>
+                    <div style={styles.historyInfo}>
+                      <div style={styles.historyFileName}>{item.fileName}</div>
+                      <div style={styles.historyMeta}>{formatDate(item.createdAt)}</div>
+                    </div>
+                    <span style={{
+                      ...styles.historyBadge,
+                      background: item.status === 'completed' ? 'rgba(16, 185, 129, 0.15)' : 
+                                  item.status === 'failed' ? 'rgba(239, 68, 68, 0.15)' : 
+                                  'rgba(99, 102, 241, 0.15)',
+                      color: item.status === 'completed' ? '#10b981' : 
+                             item.status === 'failed' ? '#f87171' : 
+                             '#6366f1'
+                    }}>
+                      {item.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Quick Tips */}
+            <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: '600', color: '#a0a0b8', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={14} color="#6366f1" />
+                Quick Tips
+              </h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                <li style={{ fontSize: '12px', color: '#6b6b82', marginBottom: '8px', paddingLeft: '16px', position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 0, color: '#6366f1' }}>•</span>
+                  Each row should be a single event
+                </li>
+                <li style={{ fontSize: '12px', color: '#6b6b82', marginBottom: '8px', paddingLeft: '16px', position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 0, color: '#6366f1' }}>•</span>
+                  Case ID groups events together
+                </li>
+                <li style={{ fontSize: '12px', color: '#6b6b82', paddingLeft: '16px', position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 0, color: '#6366f1' }}>•</span>
+                  Timestamps need consistent format
+                </li>
+              </ul>
             </div>
           </div>
         </div>
