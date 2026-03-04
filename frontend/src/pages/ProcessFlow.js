@@ -53,23 +53,11 @@ function ProcessFlow() {
       });
     svg.call(zoom);
 
-    // Define the process order
-    const activityOrder = [
-      'Order Received',
-      'Order Validation',
-      'Credit Check',
-      'License Verification',
-      'Inventory Check',
-      'Quote Generation',
-      'Customer Approval',
-      'Payment Processing',
-      'License Provisioning',
-      'Software Deployment',
-      'Configuration Setup',
-      'Quality Assurance',
-      'Customer Notification',
-      'Order Completed'
-    ];
+    // Define the process order dynamically from API or fallback
+    // The API returns activityOrder sorted by average position across all cases
+    const activityOrder = flowData.activityOrder && flowData.activityOrder.length > 0
+      ? flowData.activityOrder
+      : flowData.nodes.map(n => n.id); // Fallback to node order
 
     // Layout: 4 columns, snake pattern
     const cols = 4;

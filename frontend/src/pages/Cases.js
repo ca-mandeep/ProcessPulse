@@ -6,7 +6,9 @@ import {
   ChevronRight,
   Eye,
   X,
-  AlertCircle
+  AlertCircle,
+  Download,
+  FileSpreadsheet
 } from 'lucide-react';
 import { processAPI } from '../utils/api';
 import { 
@@ -19,6 +21,7 @@ import {
 
 function Cases() {
   const [cases, setCases] = useState([]);
+  const [allCases, setAllCases] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [filters, setFilters] = useState({});
   const [filterOptions, setFilterOptions] = useState({});
@@ -27,6 +30,7 @@ function Cases() {
   const [selectedCase, setSelectedCase] = useState(null);
   const [caseEvents, setCaseEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchFilterOptions();
@@ -88,6 +92,86 @@ function Cases() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
+  const exportToCSV = async () => {
+    setExporting(true);
+    try {
+      // Fetch all cases for export
+      const response = await processAPI.getCases({ ...filters, limit: 10000 });
+      const exportData = response.data.cases;
+      
+      if (exportData.length === 0) {
+        alert('No cases to export');
+        setExporting(false);
+        return;
+      }
+
+      // Create CSV content
+      const headers = ['Case ID', 'Customer', 'Variant', 'Status', 'Priority', 'Region', 'Order Value', 'Start Time', 'End Time'];
+      const csvRows = [headers.join(',')];
+      
+      exportData.forEach(c => {
+        const row = [
+          `"${c.caseId}"`,
+          `"${c.customer || ''}"`,
+          `"${c.variant || ''}"`,
+          `"${c.status || ''}"`,
+          `"${c.priority || ''}"`,
+          `"${c.region || ''}"`,
+          c.orderValue || 0,
+          `"${c.startTime ? new Date(c.startTime).toISOString() : ''}"`,
+          `"${c.endTime ? new Date(c.endTime).toISOString() : ''}"`
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `process_cases_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Export failed. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportToJSON = async () => {
+    setExporting(true);
+    try {
+      const response = await processAPI.getCases({ ...filters, limit: 10000 });
+      const exportData = response.data.cases;
+      
+      if (exportData.length === 0) {
+        alert('No cases to export');
+        setExporting(false);
+        return;
+      }
+
+      const jsonContent = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `process_cases_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Export failed. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="loading-container">
@@ -111,6 +195,50 @@ function Cases() {
           <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
             {pagination.total} cases found
           </span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={exportToCSV}
+              disabled={exporting}
+              className="btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                cursor: exporting ? 'not-allowed' : 'pointer',
+                opacity: exporting ? 0.6 : 1,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <FileSpreadsheet size={16} />
+              {exporting ? 'Exporting...' : 'CSV'}
+            </button>
+            <button
+              onClick={exportToJSON}
+              disabled={exporting}
+              className="btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                cursor: exporting ? 'not-allowed' : 'pointer',
+                opacity: exporting ? 0.6 : 1,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Download size={16} />
+              {exporting ? 'Exporting...' : 'JSON'}
+            </button>
+          </div>
         </div>
       </div>
 

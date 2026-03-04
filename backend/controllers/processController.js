@@ -88,6 +88,32 @@ exports.getProcessFlow = async (req, res) => {
     // Get unique activities
     const activities = await ProcessEvent.distinct('activity');
 
+    // Calculate average position of each activity across all cases
+    // This determines the natural flow order based on when activities typically happen
+    const activityPositions = await ProcessEvent.aggregate([
+      { $sort: { caseId: 1, timestamp: 1 } },
+      {
+        $group: {
+          _id: '$caseId',
+          activities: { $push: '$activity' }
+        }
+      },
+      { $unwind: { path: '$activities', includeArrayIndex: 'position' } },
+      {
+        $group: {
+          _id: '$activities',
+          avgPosition: { $avg: '$position' },
+          minPosition: { $min: '$position' },
+          maxPosition: { $max: '$position' },
+          occurrences: { $sum: 1 }
+        }
+      },
+      { $sort: { avgPosition: 1 } }
+    ]);
+
+    // Create ordered activity list based on average position
+    const activityOrder = activityPositions.map(a => a._id);
+
     // Create nodes for visualization
     const nodes = activityFrequency.map((act, index) => ({
       id: act._id,
@@ -108,7 +134,7 @@ exports.getProcessFlow = async (req, res) => {
       maxDuration: Math.round(t.maxDuration / (1000 * 60))
     }));
 
-    res.json({ nodes, edges, activities });
+    res.json({ nodes, edges, activities, activityOrder, activityPositions });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
