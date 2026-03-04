@@ -227,11 +227,96 @@ function parseExcel(filePath, limit = null) {
   return limit ? data.slice(0, limit) : data;
 }
 
+// Helper: Parse timestamp with multiple format support
+function parseTimestamp(value) {
+  if (!value) return null;
+  
+  // If it's already a Date object
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? null : value;
+  }
+  
+  // If it's a number (Excel serial date)
+  if (typeof value === 'number') {
+    // Excel date serial number (days since 1900-01-01)
+    const date = new Date((value - 25569) * 86400 * 1000);
+    return isNaN(date.getTime()) ? null : date;
+  }
+  
+  // If it's a string, try multiple formats
+  const str = String(value).trim();
+  
+  // Try standard Date parsing first
+  let date = new Date(str);
+  if (!isNaN(date.getTime())) return date;
+  
+  // Try common date formats
+  const formats = [
+    // DD/MM/YYYY HH:mm:ss
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):?(\d{2})?$/,
+    // DD-MM-YYYY HH:mm:ss
+    /^(\d{1,2})-(\d{1,2})-(\d{4})\s+(\d{1,2}):(\d{2}):?(\d{2})?$/,
+    // DD.MM.YYYY HH:mm:ss
+    /^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2}):?(\d{2})?$/,
+  ];
+  
+  for (const regex of formats) {
+    const match = str.match(regex);
+    if (match) {
+      const [, day, month, year, hours, minutes, seconds = '0'] = match;
+      date = new Date(year, month - 1, day, hours, minutes, seconds);
+      if (!isNaN(date.getTime())) return date;
+    }
+  }
+  
+  // Try date only formats
+  const dateOnlyFormats = [
+    // DD/MM/YYYY
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+    // DD-MM-YYYY
+    /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
+    // DD.MM.YYYY
+    /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/,
+  ];
+  
+  for (const regex of dateOnlyFormats) {
+    const match = str.match(regex);
+    if (match) {
+      const [, day, month, year] = match;
+      date = new Date(year, month - 1, day);
+      if (!isNaN(date.getTime())) return date;
+    }
+  }
+  
+  // Try YYYY-MM-DD format (ISO-like)
+  const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s](\d{1,2}):(\d{2}):?(\d{2})?)?/);
+  if (isoMatch) {
+    const [, year, month, day, hours = '0', minutes = '0', seconds = '0'] = isoMatch;
+    date = new Date(year, month - 1, day, hours, minutes, seconds);
+    if (!isNaN(date.getTime())) return date;
+  }
+  
+  // Unix timestamp (seconds or milliseconds)
+  const numValue = Number(str);
+  if (!isNaN(numValue)) {
+    // If it looks like seconds (before year 2100)
+    if (numValue < 4102444800) {
+      date = new Date(numValue * 1000);
+    } else {
+      date = new Date(numValue);
+    }
+    if (!isNaN(date.getTime())) return date;
+  }
+  
+  return null;
+}
+
 // Helper: Import process data
 async function importProcessData(data, mapping, userId) {
   const casesMap = new Map();
   const eventsToInsert = [];
   const transitionMap = new Map();
+  let skippedRows = 0;
 
   // Process each row
   for (const row of data) {
@@ -239,18 +324,18 @@ async function importProcessData(data, mapping, userId) {
     const activity = String(row[mapping.activity] || '').trim();
     const timestampRaw = row[mapping.timestamp];
 
-    if (!caseId || !activity || !timestampRaw) continue;
-
-    // Parse timestamp
-    let timestamp;
-    if (typeof timestampRaw === 'number') {
-      // Excel date number
-      timestamp = new Date((timestampRaw - 25569) * 86400 * 1000);
-    } else {
-      timestamp = new Date(timestampRaw);
+    if (!caseId || !activity || !timestampRaw) {
+      skippedRows++;
+      continue;
     }
 
-    if (isNaN(timestamp.getTime())) continue;
+    // Parse timestamp with multiple format support
+    let timestamp = parseTimestamp(timestampRaw);
+
+    if (!timestamp || isNaN(timestamp.getTime())) {
+      skippedRows++;
+      continue;
+    }
 
     // Create event
     const event = {
