@@ -8,7 +8,10 @@ import {
   X,
   AlertCircle,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { processAPI } from '../utils/api';
 import { 
@@ -31,6 +34,7 @@ function Cases() {
   const [caseEvents, setCaseEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: 'startTime', direction: 'desc' });
 
   useEffect(() => {
     fetchFilterOptions();
@@ -91,6 +95,54 @@ function Cases() {
     setFilters({});
     setPagination(prev => ({ ...prev, page: 1 }));
   };
+
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown size={14} style={{ opacity: 0.4 }} />;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUp size={14} style={{ color: 'var(--accent-primary)' }} />
+      : <ArrowDown size={14} style={{ color: 'var(--accent-primary)' }} />;
+  };
+
+  const sortedCases = React.useMemo(() => {
+    const sorted = [...cases].sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+      
+      // Handle null/undefined
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+      
+      // Handle dates
+      if (sortConfig.key === 'startTime' || sortConfig.key === 'endTime') {
+        aVal = new Date(aVal).getTime();
+        bVal = new Date(bVal).getTime();
+      }
+      // Handle numbers
+      else if (sortConfig.key === 'orderValue') {
+        aVal = Number(aVal) || 0;
+        bVal = Number(bVal) || 0;
+      }
+      // Handle strings
+      else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
+      
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [cases, sortConfig]);
 
   const exportToCSV = async () => {
     setExporting(true);
@@ -307,19 +359,51 @@ function Cases() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Case ID</th>
-                  <th>Customer</th>
-                  <th>Variant</th>
-                  <th>Status</th>
-                  <th>Priority</th>
-                  <th>Region</th>
-                  <th>Order Value</th>
-                  <th>Start Time</th>
+                  <th onClick={() => handleSort('caseId')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Case ID {getSortIcon('caseId')}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('customer')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Customer {getSortIcon('customer')}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('variant')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Variant {getSortIcon('variant')}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Status {getSortIcon('status')}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('priority')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Priority {getSortIcon('priority')}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('region')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Region {getSortIcon('region')}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('orderValue')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Order Value {getSortIcon('orderValue')}
+                    </div>
+                  </th>
+                  <th onClick={() => handleSort('startTime')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Start Time {getSortIcon('startTime')}
+                    </div>
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {cases.map(caseItem => (
+                {sortedCases.map(caseItem => (
                   <tr key={caseItem.caseId}>
                     <td style={{ fontWeight: 500, color: 'var(--accent-primary)' }}>
                       {caseItem.caseId}

@@ -210,24 +210,24 @@ const Import = () => {
   };
 
   const downloadTemplate = () => {
-    // Sample process mining data template
-    const templateData = `CaseID,Activity,Timestamp,Resource
-ORD-001,Order Received,2024-01-15 09:00:00,John Smith
-ORD-001,Validation,2024-01-15 09:15:00,Jane Doe
-ORD-001,Credit Check,2024-01-15 09:30:00,System
-ORD-001,Approved,2024-01-15 10:00:00,Manager
-ORD-001,Shipped,2024-01-15 14:00:00,Warehouse
-ORD-002,Order Received,2024-01-15 10:00:00,John Smith
-ORD-002,Validation,2024-01-15 10:20:00,Jane Doe
-ORD-002,Credit Check,2024-01-15 10:35:00,System
-ORD-002,Rejected,2024-01-15 11:00:00,Manager
-ORD-003,Order Received,2024-01-15 11:00:00,Mike Wilson
-ORD-003,Validation,2024-01-15 11:10:00,Jane Doe
-ORD-003,Credit Check,2024-01-15 11:25:00,System
-ORD-003,Approved,2024-01-15 11:45:00,Manager
-ORD-003,Payment,2024-01-15 12:00:00,Finance
-ORD-003,Shipped,2024-01-15 16:00:00,Warehouse
-ORD-003,Delivered,2024-01-16 10:00:00,Courier`;
+    // Sample process mining data template with all columns
+    const templateData = `CaseID,Activity,Timestamp,Resource,Customer,Status,Priority,Region,OrderValue,Department,Cost
+ORD-001,Order Received,2024-01-15 09:00:00,John Smith,Acme Corp,In Progress,High,North America,2500.00,Sales,50.00
+ORD-001,Validation,2024-01-15 09:15:00,Jane Doe,Acme Corp,In Progress,High,North America,2500.00,Operations,25.00
+ORD-001,Credit Check,2024-4-01-15 09:30:00,System,Acme Corp,In Progress,High,North America,2500.00,Finance,10.00
+ORD-001,Approved,2024-01-15 10:00:00,Manager,Acme Corp,In Progress,High,North America,2500.00,Management,35.00
+ORD-001,Shipped,2024-01-15 14:00:00,Warehouse,Acme Corp,Completed,High,North America,2500.00,Logistics,75.00
+ORD-002,Order Received,2024-01-15 10:00:00,John Smith,TechStart Inc,In Progress,Medium,Europe,1800.50,Sales,50.00
+ORD-002,Validation,2024-01-15 10:20:00,Jane Doe,TechStart Inc,In Progress,Medium,Europe,1800.50,Operations,25.00
+ORD-002,Credit Check,2024-01-15 10:35:00,System,TechStart Inc,In Progress,Medium,Europe,1800.50,Finance,10.00
+ORD-002,Rejected,2024-01-15 11:00:00,Manager,TechStart Inc,Cancelled,Medium,Europe,1800.50,Management,35.00
+ORD-003,Order Received,2024-01-15 11:00:00,Mike Wilson,Global Motors,In Progress,Critical,Asia Pacific,15000.00,Sales,50.00
+ORD-003,Validation,2024-01-15 11:10:00,Jane Doe,Global Motors,In Progress,Critical,Asia Pacific,15000.00,Operations,25.00
+ORD-003,Credit Check,2024-01-15 11:25:00,System,Global Motors,In Progress,Critical,Asia Pacific,15000.00,Finance,10.00
+ORD-003,Approved,2024-01-15 11:45:00,Manager,Global Motors,In Progress,Critical,Asia Pacific,15000.00,Management,35.00
+ORD-003,Payment,2024-01-15 12:00:00,Finance,Global Motors,In Progress,Critical,Asia Pacific,15000.00,Finance,15.00
+ORD-003,Shipped,2024-01-15 16:00:00,Warehouse,Global Motors,In Progress,Critical,Asia Pacific,15000.00,Logistics,75.00
+ORD-003,Delivered,2024-01-16 10:00:00,Courier,Global Motors,Completed,Critical,Asia Pacific,15000.00,Logistics,100.00`;
     
     const blob = new Blob([templateData], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
