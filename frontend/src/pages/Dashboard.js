@@ -78,7 +78,7 @@ function Dashboard() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Process Mining Dashboard</h1>
-          <p className="page-subtitle">SoftwareONE Order Processing Analysis</p>
+          <p className="page-subtitle">Real-time Process Analysis & Insights</p>
         </div>
         <button className="btn btn-primary" onClick={fetchData}>
           <Activity size={18} />

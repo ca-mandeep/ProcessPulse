@@ -126,9 +126,6 @@ function Sidebar() {
             </button>
           </div>
         )}
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-          SoftwareONE Order Processing
-        </div>
         <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
           Process Mining v1.0
         </div>
